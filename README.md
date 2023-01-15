@@ -3,6 +3,8 @@
 uses `^?` comments to "pin" [**YCM**](https://github.com/ycm-core/YouCompleteMe) symbol info.
 It should work with all languages for which you have semantic completer installed.
 
+![Screen recording 2023-01-15 19](https://user-images.githubusercontent.com/26599495/212560207-82b9a991-377e-410a-ba85-d508ba1702cd.gif)
+
 ## Usage
 Under a line with a symbol you would like to preview, add a comment with `^?` pointing somewhere at the symbol. Examples:
 
