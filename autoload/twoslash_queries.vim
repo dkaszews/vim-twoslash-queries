@@ -4,12 +4,9 @@ endfunction
 
 let s:base_config = {
     \ '*': {
-        \ 'commands': [ 'GetHover' ],
+        \ 'commands': [ 'GetHover', 'GetType', 'GetDoc' ],
         \ 'comment': '//',
         \ 'onsave': 0,
-    \ },
-    \ 'typescript': {
-        \ 'commands': [ 'GetType', 'GetHover' ],
     \ },
     \ 'python': {
         \ 'comment': '#',
