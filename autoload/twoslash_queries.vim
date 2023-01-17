@@ -29,6 +29,21 @@ function! twoslash_queries#get_opt(name) abort
     return g:twoslash_queries_config['*'][a:name]
 endfunction
 
+function! twoslash_queries#invoke_at(cursor, fun, ...) abort
+    let l:curpos = getcurpos()
+    let l:winpos = winsaveview()
+
+    try
+        if a:cursor != []
+            call cursor(a:cursor)
+        endif
+        return call(a:fun, a:000)
+    finally
+        call setpos('.', l:curpos)
+        call winrestview(l:winpos)
+    endtry
+endfunction
+
 " Invokes preferred command(s) at current cursor position
 function! twoslash_queries#invoke_ycm_command() abort
     let l:commands = twoslash_queries#get_opt('commands')
@@ -39,18 +54,6 @@ function! twoslash_queries#invoke_ycm_command() abort
         endif
     endfor
     return ''
-endfunction
-
-function! s:invoke_with_cursor_restore(fun, ...) abort
-    let l:curpos = getcurpos()
-    let l:winpos = winsaveview()
-
-    try
-        return call(a:fun, a:000)
-    finally
-        call setpos('.', l:curpos)
-        call winrestview(l:winpos)
-    endtry
 endfunction
 
 function! s:update() abort
@@ -74,7 +77,7 @@ function! s:update() abort
 endfunction
 
 function! twoslash_queries#update() abort
-    call s:invoke_with_cursor_restore('s:update')
+    call twoslash_queries#invoke_at([], 's:update')
 endfunction
 
 function! twoslash_queries#update_on_save() abort
