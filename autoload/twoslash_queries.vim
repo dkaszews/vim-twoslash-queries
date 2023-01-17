@@ -4,6 +4,7 @@ endfunction
 
 let s:base_config = {
     \ '*': {
+        \ 'function': 'twoslash_queries#invoke_ycm_at',
         \ 'ycm_cmds': [ 'GetHover', 'GetType', 'GetDoc' ],
         \ 'comment': '//',
         \ 'onsave': 0,
@@ -69,6 +70,7 @@ function! s:update() abort
     " (RPi4B: 90ms vs 8s, filter with lambda is 150ms, handwritten loop is 220ms).
     call cursor(1, 1)
     let l:pattern = '\v^\s*' .. twoslash_queries#get_opt('comment') .. '\s*\^\?'
+    let l:fun = twoslash_queries#get_opt('function')
     while search(l:pattern, 'W') > 0
         if stridx(getline('.'), '^?:') >= 0
             normal f:D0
@@ -77,7 +79,7 @@ function! s:update() abort
         " +1 to convert from 0-indexed Vimscript to 1-indexed Vim cursor
         let l:col = stridx(getline('.'), '^') + 1
         let l:prev_line = line('.') - 1
-        let l:result = twoslash_queries#invoke_ycm_at([ l:prev_line, l:col ])
+        let l:result = function(l:fun)([ l:prev_line, l:col ])
         if l:result != ''
             execute 'normal A:  ' .. result
         endif
