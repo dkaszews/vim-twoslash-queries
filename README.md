@@ -58,6 +58,7 @@ Options are looked up in the following order:
 1. Return `twoslash_queries_config['*'][optname]`.
 
 The global config is merged with a default one for any `&filetype`s that are not defined, and for any options in `*` that are not defined.
+You can add your own options to it for use with custom functions, but it is recommended to add some prefix (e.g. `'my_'`) to avoid collisions with future updates.
 
 Examples:
 ```viml
@@ -68,17 +69,33 @@ let g:twoslash_queries_config = { 'python': { 'commands': [ 'GetDoc' ] } }
 let g:twoslash_queries_config = { '*': { 'onsave': 1 } }
 
 " Disable automatic update on save in current buffer only
-let b:twoslash_queries_config = { 'onsave': 1 }
+let b:twoslash_queries_config = { 'onsave': 0 }
 ```
 
 ### Options
+#### `function`
+Function to call when querying a symbol.
+Takes array of cursor coordinates pointed by the `^?` (previous line, column of '^'), returns a string.
+
+_function ([lnum: number, col: number]): string, default `twoslash_queries#invoke_ycm_at`_
+
+_Examples:_
+```viml
+function! g:DictionaryLookup(cursor)
+    let l:word = twoslash_queries#invoke_at(a:cursor, {-> expand('<cWORD>')})
+    return get(g:my_dictionary, l:word, 'No definition')
+endfunction
+
+let g:twoslash_queries_config['markdown'] = { 'function': 'g:DictionaryLookup' }
+```
+
 #### `comment`
 Character(s) denoting a single line comment.
 For example, in C-like languages it is `//`, in Python, bash and PowerShell it `#`.
 
 _string, default `'//'`, Python `'#'`_
 
-#### `commands`
+#### `ycm_cmds`
 Array of [`YcmCompleter` subcommands](https://github.com/ycm-core/YouCompleteMe#ycmcompleter-subcommands) in order of preference.
 First subcommand to return a non-empty result is used, errors are silenced.
 
@@ -103,10 +120,28 @@ This is used by a `BufPostWrite` autocommand.
 #### `twoslash_queries#get_opt(name)`
 Return value of option `name` with the same lookup rules described in [ configuration](#configuration).
 
-#### `twoslash_queries#invoke_ycm_command()`
-Invoke preferred **YCM** command at the position of the cursor, with preference described in [options/`commands`](#commands).
+#### `twoslash_queries#invoke_at(cursor, fun, args...)`
+Invoke given function at given cursor coordinates, then restore the cursor and window scroll to original.
+If `cursor` is an empty array, the cursor is not moved, but any movement by `fun` is still undone.
+
+_Examples:_
+```viml
+" Append ' test' at 123th line, 10th column
+call twoslash_queries#invoke_at([123, 10], 'execute', 'normal a test')
+
+" Return documentation for symbol located at beginning of 50th line
+let l:doc = twoslash_queries_invoke_at([50, 1], 'youcompleteme#GetCommandResponse', 'GetDoc')
+```
+
+#### `twoslash_queries#invoke_ycm_at(cursor)`
+Invoke preferred **YCM** command at given cursor coordinates, with preference described in [options/`commands`](#commands).
 
 ## FAQ
+#### Do I need **YCM**, or can I use a different completer plugin?
+**YCM** is configured out of the box, but you can easily use a different plugin by overriding [`function` option](#function).
+For example, you can use [**coc.nvim**](https://github.com/neoclide/coc.nvim) by providing a wrapper around `CocAction('definitions')`.
+Feel free to create a PR if you think others could find it useful!
+
 #### Why `TwoslashQueriesUpdate` freezes vim for a second?
 Current implementation is blocking, as the cursor needs to jump around.
 This may be more noticeable in bigger files and with more pins.
@@ -123,7 +158,4 @@ Currently not, but alternative pin syntax to work around this is on the roadmap.
 
 #### How can I quickly see query result that is off the screen?
 Ability to display query results in a separate buffer is on the roadmap.
-
-#### Do I need **YCM**, or can I use a different completer plugin?
-Configuration to allow other plugins and custom queries is on the roadmap.
 
